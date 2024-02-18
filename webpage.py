@@ -4,7 +4,8 @@ import re
 from urllib.request import urlopen
 from bs4 import BeautifulSoup as bs
 import os
-import time
+import time,datetime
+import lxml
 
 if os.path.exists("index.html"):
   os.remove("index.html")
@@ -21,20 +22,20 @@ def partone(f):
         <meta charset="UTF-8">
         <title>PSGameSpider | RavelloH’s Blog</title>
         <meta name="keywords"
-              content="RavelloH,blog,">
+              content="RavelloH,blog,PlayStation,爬虫">
         <meta name="description"
-              content="A Blog by RavelloH">
+              content="自动爬取所有PlayStationStore中的所有游戏封面，自动生成网页并索引">
 
         <!-- CSS -->
         <link type="text/css"
               rel="stylesheet"
-              href="https://ravelloh.github.io/css/common.css">
+              href="/css/common.css">
         <link type="text/css"
               rel="stylesheet"
-              href="https://ravelloh.github.io/css/style.css">
+              href="/css/style.css">
         <link type="text/css"
               rel="stylesheet"
-              href="https://ravelloh.github.io/css/iconfont.css">
+              href="/css/iconfont.css">
         <style type="text/css">
             button {border: 1px solid #0099CC;
                         background-color:#1e1e1e;
@@ -89,7 +90,7 @@ def partone(f):
               position: relative;
               overflow: hidden;
               min-width: 80%;
-              max-width: 100%;
+              max-width: 90%;
               max-height: 100%;
               width: 100%;
               background: #000;
@@ -103,7 +104,7 @@ def partone(f):
             
             .hover-menu img {
               position: relative;
-              max-width: 100%;
+              max-width: 90%;
               top: 0;
               right: 0;
               opacity: 1;
@@ -151,7 +152,7 @@ def partone(f):
             }
             .text {
              position: relative;
-              width: 45%;
+              width: 50%;
               height: 80%;
               overflow: auto;
             }
@@ -188,7 +189,7 @@ def partone(f):
               line-height: 1;
             }
             .card a {
-            margin-top:5px;
+            margin-top:20px;
             }
             .card:hover a, .card:focus-within a {
             margin-top:0;
@@ -254,11 +255,7 @@ def partone(f):
             }
         </style>
 
-        <!-- JavaScript -->
-        <script type="text/javascript"
-                src="https://ravelloh.github.io/js/loading.js"></script>
-        <script type="text/javascript"
-                src="https://ravelloh.github.io/js/common.js"></script>
+        
         
 
     </head>
@@ -268,15 +265,16 @@ def partone(f):
         <body>
 
             <section class="showcase">
+	    <div class="shade"></div>
                 <header>
                     <h2 class="logo">
                         <a href="/">
                             <img class="logoimg"
-                                 src="https://ravelloh.github.io/img/avatar.jpg"
+                                 src="/img/avatar.jpg"
                                  style="width: 1.5em;border-radius: 50%;"
                                  alt="avatar">
                             <img class="logoimg"
-                                 src="https://ravelloh.github.io/img/RavelloH.svg"
+                                 src="/img/RavelloH.svg"
                                  alt="RavelloH's Blog">
                         </a>
 
@@ -298,7 +296,7 @@ def partone(f):
                             <a href="/about/">
                                 ABOUT
                             </a>
-                            </p>
+                            <p></p>
                         </nav>
                     </div>
                     <div class="toggle"
@@ -322,7 +320,7 @@ recentpartone='''
 <div class="drop-in" style="--i: 
 '''
 recentparttwo='''
-"><div class="card"><img src="logo.jpg" onload="this.src='img/
+"><div class="card"><img src="logo.jpg" onload="this.src='min-recent/
 '''
 recentpartthree='''
 .jpg'" /><div class="focus-content"><p>
@@ -365,13 +363,13 @@ htmlbodytwo='''
 '''
 
 liststart='''
-</p>
+ (UTC+8)</p>
                     
                     <form onsubmit="post();return false;">
                         <input list="gamelist"
                                name="gamelist"
                                id="searchurl"
-                               placeholder="输入要查找的游戏...">
+                               placeholder="输入要查找的游戏名...">
                         <datalist id="gamelist">
                             <!-- List Start-->
 '''
@@ -387,18 +385,51 @@ listend='''
                     <h4>- 输出 -</h4>
                     <div class="output"
                          id="output">
-                        您的浏览器不支持JavaScript。请打开JavaScript或更换浏览器以确保此程序正常运行
+                        您的浏览器不支持JavaScript。请打开JavaScript或更换浏览器以确保此程序正常运行<br>若已开启JavaScript，请尝试<a href='.' class='linkline'>点击此处刷新</a>
+>
+			
                     </div>
                     <span onclick="document.getElementById('windowa').innerHTML = helpfordemo"
                           class="iconfontsmall icon-annotation"></span>
                     <span onclick="document.getElementById('windowa').innerHTML = aboutfordemo"
                           class="iconfontsmall icon-about"></span>
+			  <br><br>
 
-            </section>
+                    <div><h4>- 更多语言 -</h4>
+
+                    <li><a href="/PSGameSpider/">中文</a></li>
+
+                    <li><a href="/PSGameSpider/en/">English</a></li>
+
+                    </div>
+
+                    <br>
+
+                    <div><h4>- 评论 -</h4>
+
+                    <br>
+
+                <div id="tcomment"></div>
+
+<script src="https://cdn.staticfile.org/twikoo/1.6.4/twikoo.all.min.js"></script>
+
+<script>
+window.TWIKOO_MAGIC_PATH="/PSGameSpider/";
+twikoo.init({
+  envId: 'https://comment.ravelloh.ml',
+  el: '#tcomment',
+  path: 'window.TWIKOO_MAGIC_PATH||window.location.pathname',
+})
+
+</script>
+</div>
+</div>
+</section>
+            
             <div class="menu">
                 <ul>
                     <script type="text/javascript"
-                            src="https://ravelloh.github.io/js/menu.js"></script>
+                            src="/js/menu.js"></script>
                 </ul>
             </div>
             <script language="javascript">
@@ -407,9 +438,15 @@ listend='''
 endofall ='''
 "RavelloH "];
         </script>
+	
             <script type="text/javascript"
                 src="main.js"></script>
-            <script src="https://ravelloh.github.io/js/script.js"></script>
+	<!-- JavaScript -->
+        <script type="text/javascript"
+                src="/js/loading.js"></script>
+        <script type="text/javascript"
+                src="https://ravelloh.github.io/js/common.js"></script>
+            <script type="text/javascript" src="/js/script.js"></script>
             <script src="//instant.page/5.1.0"
                     type="module"
                     integrity="sha384-by67kQnR+pyfy8yWP4kPO12fHKRLHZPfEsiSXR8u2IKcTdxD805MGUXBzVPnkLHw"></script>
@@ -419,10 +456,11 @@ endofall ='''
 '''
 partone(f)
 dt=0
-for name in os.listdir('./recent/'): 
-    f.write(recentpartone+str(dt)+recentparttwo+name[:-4]+recentpartthree+name[:-4]+recentpartfour+name[:-4]+recentpartfive+'\n')
+for name in os.listdir('./recent/'):
+    f.write(recentpartone+str(dt)+recentparttwo+name.replace("'",r"\'").replace('"',r'\"').replace("?",r"%3F")[:-4]+recentpartthree+name[:-4]+recentpartfour+name.replace("'",r"\'").replace("?",r"%3F")[:-4]+recentpartfive+'\n')
     dt += 1
-f.write(htmlbodytwo+time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+liststart)
+now = datetime.datetime.now()+ datetime.timedelta(hours=8)
+f.write(htmlbodytwo+now.strftime('%Y-%m-%d %H:%M:%S')+liststart)
 for file_nameb in os.listdir('./img/'):
     f.write('<option value="'+file_nameb[:-4]+'">'+'\n')
 f.write(listend)
@@ -436,5 +474,8 @@ content = f1.read()
 f1.close()
 
 t = content.replace("\n","")
+soup = bs(t,features="lxml")
+soup.prettify()
 with open("index.html","w") as f2:
-    f2.write(t)
+    f2.write(soup.prettify())
+    f2.close

@@ -1,15 +1,50 @@
 name: update
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '30 5/12 * * *' #每日更新
+    - cron: '30 */8 * * *' #每日更新
   watch:
     types: [started]
   workflow_dispatch:
+  
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
-  build:
+  delete:
     runs-on: ubuntu-latest #运行环境
+    continue-on-error: True
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: 'Git set'
+        run: |
+             git init
+             git pull
+      - name: 'Delete old files'
+        run: |
+             rm index.html
+             rm en/index.html
+      - name: Commit files
+        run: |
+          git diff
+          git config --local user.email "dr_hamilton@foxmail.com"
+          git config --local user.name "Ravello-H"
+          git add -A
+          git commit -m "`date '+%Y-%m-%d %H:%M:%S'`" || exit #动态提交信息
+          git status
+          git push -f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Wait for a moment'
+        run: |
+             sleep 10
+          
+  build:
+    needs: delete
+    runs-on: ubuntu-latest #运行环境
+    continue-on-error: True
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -26,12 +61,26 @@ jobs:
              pip install wget
              pip install bs4
              pip install urllib3 #安装依赖
+             pip install lxml
+             pip install Image
       - name: 'Working'
         run: 
           python update.py #运行主程序
       - name: 'Page'
         run: 
           python webpage.py #运行主程序
+      - name: 'EnglishWorking'
+        run: 
+          python en-update.py #运行主程序
+      - name: 'EnPage'
+        run: 
+          python en-webpage.py #运行主程序
+      - name: 'Thumbs'
+        run: 
+          python thumbs.py #运行主程序
+      - name: 'Thumbs-en'
+        run: 
+          python en-thumbs.py #运行主程序
       - name: TOC
         uses: technote-space/toc-generator@v4
       - name: Record time  
@@ -40,12 +89,34 @@ jobs:
       - name: Commit files
         run: |
           git diff
-          git config --local user.email "hyh20060327@qq.com"
-          git config --local user.name "RavelloH"
+          git config --local user.email "dr_hamilton@foxmail.com"
+          git config --local user.name "Ravello-H"
           git add -A
           git commit -m "`date '+%Y-%m-%d %H:%M:%S'`" || exit #动态提交信息
           git status
           git push -f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-     
+  sync:
+    needs: build
+    runs-on: ubuntu-latest
+    continue-on-error: True
+    steps:
+      - uses: wearerequired/git-mirror-action@master
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+        with:
+          source-repo: "git@github.com:RavelloH/PSGameSpider.git"
+          destination-repo: "git@gitee.com:ravelloh/PSGameSpider.git"
+  reload-pages:
+    needs: sync
+    runs-on: ubuntu-latest
+    continue-on-error: True
+    steps:
+      - name: reload
+        uses: mizuka-wu/gitee-pages-action@v1.0.0
+        with:
+          repository: RavelloH/PSGameSpider
+          cookie: ${{ secrets.GITEE_COOKIE }}
+          branch: main
+          https: true
